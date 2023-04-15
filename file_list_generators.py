@@ -8,17 +8,24 @@ from pathlib import Path
 
 def main():
     # Folder to search
-    dir = "Z:"
-    file_letter = dir[0]
+    while True:
+        directory = input("Enter the file directory: (X:) or (Z:)\n> ")
+        if directory == "Z:" or directory == "X:":
+            break
+        else:
+            print("Type exactly 'X:' or 'Z:'")
+    file_letter = directory[0]
 
     # My Folders are already in (Folder A, Folder B, Folder C)
-    top_level_folders = os.listdir(dir)
+    top_level_folders = set(os.listdir(directory))
+    folders_wanted = {"Anime", "Movies", "TV Shows"}
+    top_level_folders = sorted(top_level_folders.intersection(folders_wanted))
     for top_level_folder_name in top_level_folders:
         # Get the specific folder to search
-        dir = os.path.join(dir, f"\{top_level_folder_name}")
+        directory = os.path.join(directory, f"\{top_level_folder_name}")
         catalogue = []
-        for parent, subdir, file in os.walk(dir):
-            parent = clean_path(parent, dir)
+        for parent, subdir, file in os.walk(directory):
+            parent = clean_path(parent, directory)
             items = (parent, subdir, file)
             # If subdir list is empty, it means that there are only files in the "parent" directory
             if not(subdir):
@@ -56,8 +63,8 @@ def write_to_csv(file_letter, catalogue, top_level_folder_name):
                     n.write(f"{folder_path}\{file_name}\n")
 
 
-def clean_path(path, dir):
-    return path.replace(dir, "")
+def clean_path(path, directory):
+    return path.replace(directory, "")
 
 
 if __name__ == "__main__":
