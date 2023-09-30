@@ -20,6 +20,10 @@ def main():
 
 
 def generate_csv() -> None:
+    """
+    Uses the name of the parent folders (Anime, Movies, TV Shows) as the folders to compare later on.
+    This function creates CSV files based on the files that are present in these parent folders.
+    """
     for drive in DRIVES_TO_SEARCH:
         # 'X' + ':' = "X:""
         drive = drive + ":"
@@ -42,6 +46,11 @@ def generate_csv() -> None:
 
 
 def compare_csv() -> None:
+    """
+    Group the files that are going to be compared later based on the parent folders (Anime, Movies, TV Shows).
+    This function creates CSV files that uses the file with the "missing files" as the checklist,
+    and writes a CSV that contains what's missing.
+    """
     Path(f".\{TODAY}\Differences").mkdir(parents=True, exist_ok=True)
     available_files = os.listdir(f".\{TODAY}\Raw\\")
     # Create a dictionary that contains the folder_name as the key and a list of .csv files to compare as the value
@@ -70,6 +79,10 @@ def compare_csv() -> None:
 
 
 def write_to_csv(drive:str, catalogue:list, folder_name:str) -> None:
+    """
+    This function creates a CSV file based on the contents in catalogue (Path, File), and uses drive & folder_name
+    just for its own file name.
+    """
     Path(f".\{TODAY}\Raw").mkdir(parents=True, exist_ok=True)
     csv_headers = ["Path", "File"]
     # Write to CSV
