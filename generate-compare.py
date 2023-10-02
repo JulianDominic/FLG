@@ -8,11 +8,11 @@ from pathlib import Path
 
 # Config
 # TODO: Use Paths instead of Drive Letters
-DRIVE_LETTER_1 = 'X'
-DRIVE_LETTER_2 = 'Z'
-DRIVES_TO_SEARCH = [DRIVE_LETTER_1, DRIVE_LETTER_2]
+PATH_1 = 'X:\\'  # Use absolute path
+PATH_2 = 'Z:\\'  # Z:\
+PATHS_TO_SEARCH = [PATH_1, PATH_2]
 FOLDERS_WANTED = ["Anime", "Movies", "TV Shows"]
-FILE_EXTS_WANTED = ("mp4", "mkv", "srt")
+FILE_EXTS_WANTED = ("mp4", "mkv", "srt", ".py")
 TODAY = date.today()  # YYYY-MM-DD
 
 
@@ -26,17 +26,16 @@ def generate_csv() -> None:
     Uses the name of the parent folders (Anime, Movies, TV Shows) as the folders to compare later on.
     This function creates CSV files based on the files that are present in these parent folders.
     """
-    for drive in DRIVES_TO_SEARCH:
-        # 'X' + ':' = "X:""
-        drive = drive + ":"
+    for path in PATHS_TO_SEARCH:
+        drive_letter = path[0]
         for folder_name in FOLDERS_WANTED:
             # Create a folder_path -- X:\Anime, Z:\Anime, etc
-            folder_path = os.path.join(drive, folder_name)
+            folder_path = os.path.join(path, folder_name)
             catalogue = []
             print("Searching for files...")
             for parent_directory, sub_directory, file in os.walk(folder_path):
                 # Get rid of the folder_path that is written in the parent_directory
-                parent_directory = parent_directory.lstrip(drive).lstrip(folder_name).lstrip('\\')
+                parent_directory = parent_directory.lstrip(path).lstrip(folder_name).lstrip('\\')
                 # If the sub_directory list is empty, 
                 # it means that we have reached the bottom/end of the folder 
                 # and we can now find files
@@ -44,7 +43,7 @@ def generate_csv() -> None:
                     catalogue.append({"Path": parent_directory, 
                                       "File": file})
             print("Finished searching.")
-            write_to_csv(drive[0], catalogue, folder_name)
+            write_to_csv(drive_letter, catalogue, folder_name)
     else:
         print("All CSVs have been generated.\n\n")
 
@@ -55,7 +54,6 @@ def compare_csv() -> None:
     This function creates CSV files that uses the file with the "missing files" as the checklist,
     and writes a CSV that contains what's missing.
     """
-    # TODO: Do not rely on the alphabetical order of the drives to determine which one is the "master"
     Path(f".\{TODAY}\Differences").mkdir(parents=True, exist_ok=True)
     available_files = os.listdir(f".\{TODAY}\Raw\\")
     # Create a dictionary that contains the folder_name as the key 
@@ -68,19 +66,20 @@ def compare_csv() -> None:
                 check_folder_name = file.split('-')
                 if folder_name in check_folder_name:
                     compare_dict[folder_name].append(file)
+        # Eliminate the need of choosing which is the "master" by checking both files for differences instead.
         print(f"Starting the comparison for {folder_name}...")
-        # It just so happens that in compare_dict, our files are already in DRIVE_LETTER_1 and DRIVE_LETTER_2 order.
-        # Since I know that DRIVE_LETTER_1 is the drive that contains less info, it will be used as the "master".
-        with open(f".\{TODAY}\Raw\{compare_dict[folder_name][1]}", 'r', encoding="utf8") as check_file:
-            master_set = set(check_file.readlines())  # using readlines() rather than using a for loop
-
-        # We will use sets and their operations because it's apparently more efficient.
-        with open(f".\{TODAY}\Raw\{compare_dict[folder_name][0]}", 'r', encoding="utf8") as in_file, \
-            open(f'.\{TODAY}\Differences\{folder_name} Differences.csv', 'w', encoding="utf8") as out_file:
-            check_set = set(in_file.readlines())
-            differences = sorted(check_set.difference(master_set))  # check_set - master_set = differences
-            for line in differences:
-                out_file.write(line)
+        for i, j in zip([0, 1], [1, 0]):
+            csv_1, csv_2 = compare_dict[folder_name][i], compare_dict[folder_name][j]
+            csv_1_filename = csv_1.rstrip(".csv")
+            with open(f".\{TODAY}\Raw\{csv_1}", 'r', encoding="UTF-8") as base_csv, \
+                open(f".\{TODAY}.\Raw\{csv_2}", 'r', encoding="UTF-8") as adjusted_csv:
+                base = set(base_csv.readlines())
+                adjusted = set(adjusted_csv.readlines())
+            # Write the missing entries for base_csv
+            with open(f".\{TODAY}\Differences\{csv_1_filename}-Differences.csv", 'w', encoding="utf8") as differences_csv:
+                differences = sorted(adjusted.difference(base))
+                for line in differences:
+                    differences_csv.write(line)
         print(f"Finished the comparison for {folder_name}.\n")
     else:
         print("All tasks have been completed.")
