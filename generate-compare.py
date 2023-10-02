@@ -65,14 +65,16 @@ def compare_csv() -> None:
         print(f"Starting the comparison for {folder_name}...")
         # It just so happens that in compare_dict, our files are already in DRIVE_LETTER_1 and DRIVE_LETTER_2 order.
         # Since I know that DRIVE_LETTER_1 is the drive that contains less info, it will be used as the "master".
-        with open(f".\{TODAY}\Raw\{compare_dict[folder_name][0]}", 'r', encoding="utf8") as check_file:
-            check_set = set([row for row in check_file])
-        with open(f".\{TODAY}\Raw\{compare_dict[folder_name][1]}", 'r', encoding="utf8") as in_file, \
+        with open(f".\{TODAY}\Raw\{compare_dict[folder_name][1]}", 'r', encoding="utf8") as check_file:
+            master_set = set(check_file.readlines())  # using readlines() rather than using a for loop
+
+        # We will use sets and their operations because it's apparently more efficient.
+        with open(f".\{TODAY}\Raw\{compare_dict[folder_name][0]}", 'r', encoding="utf8") as in_file, \
             open(f'.\{TODAY}\Differences\{folder_name} Differences.csv', 'w') as out_file:
-            for line in in_file:
-                # If the file is not found in DRIVE_LETTER_1, we will write a line to the CSV.
-                if line not in check_set:
-                    out_file.write(line)
+            check_set = set(in_file.readlines())
+            differences = sorted(check_set.difference(master_set))  # check_set - master_set = differences
+            for line in differences:
+                out_file.write(line)
         print(f"Finished the comparison for {folder_name}.\n")
     else:
         print("All tasks have been completed.")
