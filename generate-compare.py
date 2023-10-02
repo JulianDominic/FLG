@@ -6,6 +6,8 @@ import os
 from datetime import date
 from pathlib import Path
 
+# Config
+# TODO: Use Paths instead of Drive Letters
 DRIVE_LETTER_1 = 'X'
 DRIVE_LETTER_2 = 'Z'
 DRIVES_TO_SEARCH = [DRIVE_LETTER_1, DRIVE_LETTER_2]
@@ -35,7 +37,9 @@ def generate_csv() -> None:
             for parent_directory, sub_directory, file in os.walk(folder_path):
                 # Get rid of the folder_path that is written in the parent_directory
                 parent_directory = parent_directory.lstrip(drive).lstrip(folder_name).lstrip('\\')
-                # If the sub_directory list is empty, it means that we have reached the bottom/end of the folder and we can now find files
+                # If the sub_directory list is empty, 
+                # it means that we have reached the bottom/end of the folder 
+                # and we can now find files
                 if not(sub_directory):
                     catalogue.append({"Path": parent_directory, 
                                       "File": file})
@@ -51,9 +55,11 @@ def compare_csv() -> None:
     This function creates CSV files that uses the file with the "missing files" as the checklist,
     and writes a CSV that contains what's missing.
     """
+    # TODO: Do not rely on the alphabetical order of the drives to determine which one is the "master"
     Path(f".\{TODAY}\Differences").mkdir(parents=True, exist_ok=True)
     available_files = os.listdir(f".\{TODAY}\Raw\\")
-    # Create a dictionary that contains the folder_name as the key and a list of .csv files to compare as the value
+    # Create a dictionary that contains the folder_name as the key 
+    # and a list of .csv files to compare as the value
     compare_dict = {}
     for folder_name in FOLDERS_WANTED:
         compare_dict[folder_name] = []
@@ -70,7 +76,7 @@ def compare_csv() -> None:
 
         # We will use sets and their operations because it's apparently more efficient.
         with open(f".\{TODAY}\Raw\{compare_dict[folder_name][0]}", 'r', encoding="utf8") as in_file, \
-            open(f'.\{TODAY}\Differences\{folder_name} Differences.csv', 'w') as out_file:
+            open(f'.\{TODAY}\Differences\{folder_name} Differences.csv', 'w', encoding="utf8") as out_file:
             check_set = set(in_file.readlines())
             differences = sorted(check_set.difference(master_set))  # check_set - master_set = differences
             for line in differences:
